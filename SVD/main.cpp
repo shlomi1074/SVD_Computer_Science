@@ -27,7 +27,6 @@ int main()
 
 	std::cout << "Creating matrix object" << std::endl;
 	LA::Matrix mat(input.second.first, input.second.second, &input.first);
-	//LA::Matrix mat(5, 5, true);
 	std::cout << "Finished Creating matrix object" << std::endl;
 	std::cout << "Calculate SVD" << std::endl;
 	start = high_resolution_clock::now();
@@ -42,28 +41,33 @@ int main()
 	cout << "SVD Duration: " << SVD_duration_sec.count() << " sec" << endl << endl;
 	cout << "SVD Duration: " << SVD_duration_millis.count() << " millis" << endl << endl;
 
+	std::cout << "Writing matrices to output file..." << std::endl;
 	auto u = mat.GetU();
 	auto s = mat.GetS();
 	auto vt = mat.GetVt();
-
-	start = high_resolution_clock::now();
 	auto mulRes = u * s * vt;
 
-	auto res = mat.Compare(mulRes, 0.01);
-	stop = high_resolution_clock::now();
-	auto compare_duration_sec = duration_cast<seconds>(stop - start);
-	auto compare_duration_millis = duration_cast<milliseconds>(stop - start);
-	std::cout << "Compare result: " << res << std::endl;
+	auto compare_res = mat.Compare(mulRes, 0.01);
 
-	cout << "Compare Duration: " << compare_duration_sec.count() << " sec" << endl << endl;
-	cout << "Compare Duration: " << compare_duration_millis.count() << " millis" << endl << endl;
 
-	mat.WriteMatrixToFile("data8", "A");
-	mat.GetV().WriteMatrixToFile("data8", "V");
-	s.WriteMatrixToFile("data8", "S");
-	u.WriteMatrixToFile("data8", "U");
-	mulRes.WriteMatrixToFile("data8", "USVt");
+	string filename = "data8";
+	mat.WriteMatrixToFile(filename, "A");
+	mat.GetV().WriteMatrixToFile(filename, "V");
+	s.WriteMatrixToFile(filename, "S");
+	u.WriteMatrixToFile(filename, "U");
+	mulRes.WriteMatrixToFile(filename, "USVt");
 
+
+	std::ofstream output_file;
+	auto res = compare_res == 1 ? "Successful" : "Failed";
+	output_file.open(filename.append("_output.txt"), std::ios_base::app);
+	output_file << "SVD Results: " << res <<endl << endl;
+	output_file << "Performance Results: " << endl;
+	output_file << "Load File Duration: " << load_file_duration_sec.count() << " sec" << endl;
+	output_file << "Load File Duration: " << load_file_duration_millis.count() << " millis" << endl << endl;
+	output_file << endl;
+	output_file << "SVD Duration: " << SVD_duration_sec.count() << " sec" << endl;
+	output_file << "SVD Duration: " << SVD_duration_millis.count() << " millis" << endl << endl;
 }
 
 std::pair<vector<long double>, std::pair<int, int>> getVectorFromFile(string filename)
