@@ -197,159 +197,159 @@ inline bool equals(double** M1, int n1, int m1, double** M2, int n2, int m2)
 	return true;
 }
 
-int	 main()
-{
-	//save start time
-	auto start = high_resolution_clock::now();
-
-	string file_name = "data_8";
-
-	// read file and insert comma sepereted elemetnts into a vector, update rows and cols (global vars)
-	vector<double> input = getVectorFromFile(file_name+".txt");
-
-	// get n x m matrix from n + m vector 
-	int a_rows = rows, a_cols = cols;
-	double** A = getMatrix(input, a_rows, a_cols);
-	//printMatrix(A, rows, cols, "A");
-
-
-	// -------------------------------- START CALC SVD(M) -------------------------------- //
-
-	cout << "Calculate SVD(A)..." << endl;
-
-	
-
-	// calculate transpose of M
-	int at_rows = a_cols, at_cols = a_rows;
-	double** At = transpose(A, a_rows, a_cols);
-	//printMatrix(At, at_rows, at_cols, "T(At)");
-
-	// Calculate Transpose(M)*M
-	double** AtA = matricesMultiplication(At, at_rows, at_cols, A, a_rows, a_cols);
-	int ata_size = a_cols;
-	//printMatrix(AtA, ata_size, ata_size, "T(A)*A");
-	
-	//calculate eigen vectors and eigen values by using Jacobi alg on T(M)*M
-	Jacobi* jacobiAtA = new Jacobi(AtA, ata_size, ata_size);
-	jacobiAtA->calculateEigensByJacobiAlgo();
-	//printMatrix(AtA, ata_size, ata_size, "T(A)*A");
-
-	int num_of_eigens = jacobiAtA->N;
-
-	//cout << "eigen values before sort:" << endl;
-	//for (int i = 0; i < num_of_eigens; i++)
-	//	cout << jacobiAtA->eigenValues[i] << ",	";
-	//cout << endl << endl;
-
-
-	int* order = bubbleSort(jacobiAtA->eigenvalues, num_of_eigens);
-	// --->>> Explanation: order includes in each cell what the number of column (eigen vector) that need to be in this place
-	//		  for example:	if oreder look like:	cell:	0	1	2	3	so we know that V[:][0] need to be eigenVector[:][3]
-	//												val:	3	1	0	2
-
-
-	//cout << "eigen values after sort:" << endl;
-	//for (int i = 0; i < num_of_eigens; i++)
-	//	cout << jacobiAtA->eigenValues[i] << ",	";
-	//cout << endl << endl;
-
-	//for (int i = 0; i < num_of_eigens; i++)
-	//	cout << order[i] << ",	";
-	//cout << endl << endl;
-
-	// S
-	double** S = getS(jacobiAtA);
-	int s_size = num_of_eigens;
-	//printMatrix(S, s_size, s_size, "S");
-
-	// V
-	int v_size = num_of_eigens;
-	double** V = getV(jacobiAtA, order);
-	//printMatrix(V, v_size, v_size, "V");
-
-	// pseudo inverse (S) 
-	double** s_pseudoinverted = getPseudoInverse(S, s_size);
-	//printMatrix(s_pseudoinverted, s_size, s_size, "s_pseudoinverted");
-
-	// U = A(nxm) * V(mxm) * pseudo_inv(S)(mxm)
-	double** U = matricesMultiplication(matricesMultiplication(A, a_rows, a_cols, V, v_size, v_size), a_rows, v_size, s_pseudoinverted, s_size, s_size);
-	int u_rows = a_rows, u_cols = s_size;
-	//printMatrix(U, u_rows, u_cols, "U");
-
-	
-
-	// -------------------------------- FINISH CALC SVD(M) -------------------------------- //
-
-	//printMatrix(S, s_size, s_size, "S");
-	//printMatrix(V, v_size, v_size, "V");
-	//printMatrix(U, u_rows, u_cols, "U");
-
-	// chack result
-
-	// Vt = T(V)
-	double** Vt = transpose(V, v_size, v_size);
-	//printMatrix(Vt, v_size, v_size, "Vt");
-
-	// USVt = U * S * T(V)
-	double** USVt = matricesMultiplication(matricesMultiplication(U, u_rows, u_cols, S, s_size, s_size), u_rows, s_size, Vt, v_size, v_size);
-	//printMatrix(USVt, u_rows, v_size, "USVt");
-
-	string result = "";
-
-	//	 check if U*S*T(V)~= M
-	if (equals(A, a_rows, a_cols, USVt, u_rows, v_size))
-		result = "U*S*T(V) ~= A";
-	else
-		result = "U*S*T(V) != A";
-	cout << result << endl;
-	
-	
-
-	// write results to output file
-	ofstream output_file;
-	output_file.open(file_name.append("_output.txt"));
-	writeMatrixToFile(A, a_rows, a_cols, "A", output_file);
-	writeMatrixToFile(V, v_size, v_size, "V", output_file);
-	writeMatrixToFile(S, s_size, s_size, "S", output_file);
-	writeMatrixToFile(U, u_rows, u_cols, "U", output_file);
-	writeMatrixToFile(USVt, u_rows, v_size, "USVt", output_file);
-	
-	// save a finish time
-	auto stop = high_resolution_clock::now();
-	
-	// calc duration of svd calc
-	auto duration_sec = duration_cast<seconds>(stop - start);
-	auto duration_millis = duration_cast<milliseconds>(stop - start);
-	auto duration_nanos = duration_cast<nanoseconds>(stop - start);
-	
-	cout << "Duration: " << duration_sec.count() << " sec" << endl << endl;
-	cout << "Duration: " << duration_millis.count() << " millis" << endl << endl;
-	cout << "Duration: " << duration_nanos.count() << " nanos" << endl << endl;
-	
-	output_file << "Result: " << result << endl;
-	output_file << "Duration: " << duration_sec.count() << " sec" << endl << endl;
-	output_file << "Duration: " << duration_millis.count() << " millis" << endl << endl;
-	output_file << "Duration: " << duration_nanos.count() << " nano" << endl << endl;
-	output_file.close();
-
-
-	
-
-	jacobiAtA->~Jacobi();
-	for (int i = 0; i < s_size; i++)
-		delete[] S[i];
-	delete[] S;
-	for (int i = 0; i < v_size; i++)
-		delete[] V[i];
-	delete[] V;
-	for (int i = 0; i < u_rows; i++)
-		delete[] U[i];
-	delete[] U;
-	for (int i = 0; i < a_rows; i++)
-		delete[] A[i];
-	delete[] A;
-	for (int i = 0; i < at_rows; i++)
-		delete[] At[i];
-	delete[] At;
-
-}
+//int	 main()
+//{
+//	//save start time
+//	auto start = high_resolution_clock::now();
+//
+//	string file_name = "data_8";
+//
+//	// read file and insert comma sepereted elemetnts into a vector, update rows and cols (global vars)
+//	vector<double> input = getVectorFromFile(file_name+".txt");
+//
+//	// get n x m matrix from n + m vector 
+//	int a_rows = rows, a_cols = cols;
+//	double** A = getMatrix(input, a_rows, a_cols);
+//	//printMatrix(A, rows, cols, "A");
+//
+//
+//	// -------------------------------- START CALC SVD(M) -------------------------------- //
+//
+//	cout << "Calculate SVD(A)..." << endl;
+//
+//	
+//
+//	// calculate transpose of M
+//	int at_rows = a_cols, at_cols = a_rows;
+//	double** At = transpose(A, a_rows, a_cols);
+//	//printMatrix(At, at_rows, at_cols, "T(At)");
+//
+//	// Calculate Transpose(M)*M
+//	double** AtA = matricesMultiplication(At, at_rows, at_cols, A, a_rows, a_cols);
+//	int ata_size = a_cols;
+//	//printMatrix(AtA, ata_size, ata_size, "T(A)*A");
+//	
+//	//calculate eigen vectors and eigen values by using Jacobi alg on T(M)*M
+//	Jacobi* jacobiAtA = new Jacobi(AtA, ata_size, ata_size);
+//	jacobiAtA->calculateEigensByJacobiAlgo();
+//	//printMatrix(AtA, ata_size, ata_size, "T(A)*A");
+//
+//	int num_of_eigens = jacobiAtA->N;
+//
+//	//cout << "eigen values before sort:" << endl;
+//	//for (int i = 0; i < num_of_eigens; i++)
+//	//	cout << jacobiAtA->eigenValues[i] << ",	";
+//	//cout << endl << endl;
+//
+//
+//	int* order = bubbleSort(jacobiAtA->eigenvalues, num_of_eigens);
+//	// --->>> Explanation: order includes in each cell what the number of column (eigen vector) that need to be in this place
+//	//		  for example:	if oreder look like:	cell:	0	1	2	3	so we know that V[:][0] need to be eigenVector[:][3]
+//	//												val:	3	1	0	2
+//
+//
+//	//cout << "eigen values after sort:" << endl;
+//	//for (int i = 0; i < num_of_eigens; i++)
+//	//	cout << jacobiAtA->eigenValues[i] << ",	";
+//	//cout << endl << endl;
+//
+//	//for (int i = 0; i < num_of_eigens; i++)
+//	//	cout << order[i] << ",	";
+//	//cout << endl << endl;
+//
+//	// S
+//	double** S = getS(jacobiAtA);
+//	int s_size = num_of_eigens;
+//	//printMatrix(S, s_size, s_size, "S");
+//
+//	// V
+//	int v_size = num_of_eigens;
+//	double** V = getV(jacobiAtA, order);
+//	//printMatrix(V, v_size, v_size, "V");
+//
+//	// pseudo inverse (S) 
+//	double** s_pseudoinverted = getPseudoInverse(S, s_size);
+//	//printMatrix(s_pseudoinverted, s_size, s_size, "s_pseudoinverted");
+//
+//	// U = A(nxm) * V(mxm) * pseudo_inv(S)(mxm)
+//	double** U = matricesMultiplication(matricesMultiplication(A, a_rows, a_cols, V, v_size, v_size), a_rows, v_size, s_pseudoinverted, s_size, s_size);
+//	int u_rows = a_rows, u_cols = s_size;
+//	//printMatrix(U, u_rows, u_cols, "U");
+//
+//	
+//
+//	// -------------------------------- FINISH CALC SVD(M) -------------------------------- //
+//
+//	//printMatrix(S, s_size, s_size, "S");
+//	//printMatrix(V, v_size, v_size, "V");
+//	//printMatrix(U, u_rows, u_cols, "U");
+//
+//	// chack result
+//
+//	// Vt = T(V)
+//	double** Vt = transpose(V, v_size, v_size);
+//	//printMatrix(Vt, v_size, v_size, "Vt");
+//
+//	// USVt = U * S * T(V)
+//	double** USVt = matricesMultiplication(matricesMultiplication(U, u_rows, u_cols, S, s_size, s_size), u_rows, s_size, Vt, v_size, v_size);
+//	//printMatrix(USVt, u_rows, v_size, "USVt");
+//
+//	string result = "";
+//
+//	//	 check if U*S*T(V)~= M
+//	if (equals(A, a_rows, a_cols, USVt, u_rows, v_size))
+//		result = "U*S*T(V) ~= A";
+//	else
+//		result = "U*S*T(V) != A";
+//	cout << result << endl;
+//	
+//	
+//
+//	// write results to output file
+//	ofstream output_file;
+//	output_file.open(file_name.append("_output.txt"));
+//	writeMatrixToFile(A, a_rows, a_cols, "A", output_file);
+//	writeMatrixToFile(V, v_size, v_size, "V", output_file);
+//	writeMatrixToFile(S, s_size, s_size, "S", output_file);
+//	writeMatrixToFile(U, u_rows, u_cols, "U", output_file);
+//	writeMatrixToFile(USVt, u_rows, v_size, "USVt", output_file);
+//	
+//	// save a finish time
+//	auto stop = high_resolution_clock::now();
+//	
+//	// calc duration of svd calc
+//	auto duration_sec = duration_cast<seconds>(stop - start);
+//	auto duration_millis = duration_cast<milliseconds>(stop - start);
+//	auto duration_nanos = duration_cast<nanoseconds>(stop - start);
+//	
+//	cout << "Duration: " << duration_sec.count() << " sec" << endl << endl;
+//	cout << "Duration: " << duration_millis.count() << " millis" << endl << endl;
+//	cout << "Duration: " << duration_nanos.count() << " nanos" << endl << endl;
+//	
+//	output_file << "Result: " << result << endl;
+//	output_file << "Duration: " << duration_sec.count() << " sec" << endl << endl;
+//	output_file << "Duration: " << duration_millis.count() << " millis" << endl << endl;
+//	output_file << "Duration: " << duration_nanos.count() << " nano" << endl << endl;
+//	output_file.close();
+//
+//
+//	
+//
+//	jacobiAtA->~Jacobi();
+//	for (int i = 0; i < s_size; i++)
+//		delete[] S[i];
+//	delete[] S;
+//	for (int i = 0; i < v_size; i++)
+//		delete[] V[i];
+//	delete[] V;
+//	for (int i = 0; i < u_rows; i++)
+//		delete[] U[i];
+//	delete[] U;
+//	for (int i = 0; i < a_rows; i++)
+//		delete[] A[i];
+//	delete[] A;
+//	for (int i = 0; i < at_rows; i++)
+//		delete[] At[i];
+//	delete[] At;
+//
+//}
