@@ -16,7 +16,7 @@ LA::Matrix::Matrix(int nRows, int nCols, bool isRandom):
 {
 	m_maxValueRowIndex = -1;
 	m_maxValueColIndex = -1;
-	m_matrix = new long double[m_nElements];
+	m_matrix = new double[m_nElements];
 	if (isRandom) {
 		srand(time(NULL));
 		for (int i = 0; i < m_nElements; i++)
@@ -32,18 +32,18 @@ LA::Matrix::Matrix(int nRows, int nCols, bool isRandom):
 	}
 }
 
-LA::Matrix::Matrix(int nRows, int nCols, vector<long double>* inputData):
+LA::Matrix::Matrix(int nRows, int nCols, vector<double>* inputData):
 m_nRows(nRows),
 m_nCols(nCols),
 m_nElements(m_nRows* m_nCols)
 {
-	m_matrix = new long double[m_nElements];
+	m_matrix = new double[m_nElements];
 	for (int i = 0; i < m_nElements; i++)
 		m_matrix[i] = (*inputData)[i];
 
 	m_maxValueRowIndex = -1;
 	m_maxValueColIndex = -1;
-	m_maxValue = std::numeric_limits<long double>::min();
+	m_maxValue = std::numeric_limits<double>::min();
 	for (int i = 0; i < m_nRows; i++)
 	{
 		for (int j = 0; j < m_nCols; j++)
@@ -71,18 +71,18 @@ LA::Matrix::Matrix(const Matrix& inputMatrix) :
 	m_eigenValuesInverse = inputMatrix.m_eigenValuesInverse;
 	m_eigenVectorsTranspose = inputMatrix.m_eigenVectorsTranspose;
 
-	m_matrix = new long double[m_nElements];
+	m_matrix = new double[m_nElements];
 	for (int i = 0; i < m_nElements; i++)
 		m_matrix[i] = inputMatrix.m_matrix[i];
 }
 
-long double LA::Matrix::GetElement(int row, int col) const
+double LA::Matrix::GetElement(int row, int col) const
 {
 	auto index = LA::Matrix::calculateIndex(row, col);
 	return m_matrix[index];
 }
 
-void LA::Matrix::CalculateEigensJacobi(long double tolerance = 1.0e-8)
+void LA::Matrix::CalculateEigensJacobi(double tolerance = 1.0e-8)
 {
 	//TODO: check if ok
 	m_eigenValues = new LA::Matrix(m_nCols, m_nCols, false);
@@ -97,7 +97,7 @@ void LA::Matrix::CalculateEigensJacobi(long double tolerance = 1.0e-8)
 	int numOfIterations = 2 * m_nCols;
 	//const int tol = tolerance;
 	for (int i = 0; i < numOfIterations; i++) {
-		long double aMax = findMaxElem();
+		double aMax = findMaxElem();
 		if (m_maxValue < tolerance)
 			break;
 		jacobiEigensRotate();
@@ -109,12 +109,12 @@ void LA::Matrix::CalculateEigensJacobi(long double tolerance = 1.0e-8)
 void LA::Matrix::jacobiEigensRotate()
 {
 	//calculations
-	long double maxRow =  GetElement(m_maxValueRowIndex, m_maxValueRowIndex);
-	long double maxCol = GetElement(m_maxValueColIndex, m_maxValueColIndex);
-	long double maxRowCol = GetElement(m_maxValueRowIndex, m_maxValueColIndex);
+	double maxRow =  GetElement(m_maxValueRowIndex, m_maxValueRowIndex);
+	double maxCol = GetElement(m_maxValueColIndex, m_maxValueColIndex);
+	double maxRowCol = GetElement(m_maxValueRowIndex, m_maxValueColIndex);
 
-	long double aDiff = maxCol - maxRow;
-	long double t, phi;
+	double aDiff = maxCol - maxRow;
+	double t, phi;
 	if (fabs(maxRowCol) < fabs(aDiff) * 1.0e-36)
 		t = maxRowCol / aDiff;
 	else {
@@ -123,14 +123,14 @@ void LA::Matrix::jacobiEigensRotate()
 		if (phi < 0.0)
 			t = -t;
 	}
-	long double c = 1.0 / sqrt(pow(t, 2) + 1.0);
-	long double s = t * c;
-	long double tau = s / (1.0 + c);
-	long double temp = maxRowCol;
-	long double tempValue;
-	long double elem;
-	long double tempCol;
-	long double tempRow;
+	double c = 1.0 / sqrt(pow(t, 2) + 1.0);
+	double s = t * c;
+	double tau = s / (1.0 + c);
+	double temp = maxRowCol;
+	double tempValue;
+	double elem;
+	double tempCol;
+	double tempRow;
 	//updating M (for eigen values)
  	SetElement(m_maxValueRowIndex, m_maxValueColIndex, 0);
 	SetElement(m_maxValueRowIndex, m_maxValueRowIndex, maxRow - t * temp);
@@ -177,25 +177,25 @@ void LA::Matrix::jacobiEigensRotate()
 	}
 }
 
-void LA::Matrix::arrangeEigenVectors(vector<pair<long double, int>> eigenValues)
+void LA::Matrix::arrangeEigenVectors(vector<pair<double, int>> eigenValues)
 {
 	// initialize
 	Matrix result(m_nCols, m_nCols, false);
 	for (int j = 0; j < m_nCols; j++) // run on columns
 		for (int i = 0; i < m_nRows; i++) { // run on rows
-			long double elem = m_eigenVectors->GetElement(i, eigenValues[j].second);
+			double elem = m_eigenVectors->GetElement(i, eigenValues[j].second);
 			result.SetElement(i, j, elem);
 		}
 	*m_eigenVectors = result;	
 }
 
-void LA::Matrix::SetElement(int row, int col, long double elementValue)
+void LA::Matrix::SetElement(int row, int col, double elementValue)
 {
 	auto index = LA::Matrix::calculateIndex(row, col);
 	m_matrix[index] = elementValue;
 }
 
-void LA::Matrix::SetElement(int index, long double elementValue)
+void LA::Matrix::SetElement(int index, double elementValue)
 {
 	m_matrix[index] = elementValue;
 }
@@ -256,7 +256,7 @@ LA::Matrix LA::Matrix::PseudoInverse()
 	return resMatrix;
 }
 
-void LA::Matrix::SVD(long double tolerance = 1.0e-8)
+void LA::Matrix::SVD(double tolerance = 1.0e-8)
 {
 	m_eigenValues = new LA::Matrix(m_nCols, m_nCols, false);
 	m_eigenVectors = new LA::Matrix(m_nCols, m_nCols, false);
@@ -268,13 +268,13 @@ void LA::Matrix::SVD(long double tolerance = 1.0e-8)
 	AtA.CalculateEigensJacobi(tolerance);
 	LA::Matrix S(AtA);
 
-	vector<pair<long double, int>> eigenValues;
+	vector<pair<double, int>> eigenValues;
 
 	for (int i = 0; i < m_nCols; i++)
 	{
-		eigenValues.push_back(pair<long double, int>(S.m_eigenValues->GetElement(i, i), i));
+		eigenValues.push_back(pair<double, int>(S.m_eigenValues->GetElement(i, i), i));
 	}
-	sort(eigenValues.begin(), eigenValues.end(), greater<pair<long double, int>>());
+	sort(eigenValues.begin(), eigenValues.end(), greater<pair<double, int>>());
 	S.arrangeEigenVectors(eigenValues);
 	for (int i = 0; i < m_nCols; i++)
 	{
@@ -286,8 +286,8 @@ void LA::Matrix::SVD(long double tolerance = 1.0e-8)
 	*m_eigenVectors = *S.m_eigenVectors;
 }
 
-long double LA::Matrix::findMaxElem() {
-	long double aMax = 0.0;
+double LA::Matrix::findMaxElem() {
+	double aMax = 0.0;
 	for (int i = 0; i < m_nCols - 1; i++)
 		for (int j = i + 1; j < m_nCols; j++)
 			if (aMax <= fabs(GetElement(i, j))) {
@@ -314,19 +314,19 @@ void LA::Matrix::PrintMatrix()
 	}
 }
 
-bool LA::Matrix::Compare(const Matrix& matrix1, long double tolerance)
+bool LA::Matrix::Compare(const Matrix& matrix1, double tolerance)
 {
 	int numRows1 = matrix1.m_nRows;
 	int numCols1 = matrix1.m_nCols;
 	if ((numRows1 != m_nRows) || (numCols1 != m_nCols))
 		return false;
 
-	long double cumulativeSum = 0.0;
+	double cumulativeSum = 0.0;
 	for (int i = 0; i < m_nElements; ++i)
 	{
-		long double element1 = matrix1.m_matrix[i];
-		long double element2 = m_matrix[i];
-		long double diff = sqrt(((element1 - element2) * (element1 - element2)));
+		double element1 = matrix1.m_matrix[i];
+		double element2 = m_matrix[i];
+		double diff = sqrt(((element1 - element2) * (element1 - element2)));
 
 		if (diff > tolerance)
 		{
@@ -374,39 +374,13 @@ LA::Matrix LA::Matrix::operator=(const Matrix& rhs)
 		if (m_matrix)
 			delete[] m_matrix;
 
-		m_matrix = new long double[m_nElements];
+		m_matrix = new double[m_nElements];
 		for (int i = 0; i < m_nElements; i++)
 			m_matrix[i] = rhs.m_matrix[i];
 
 		return *this;
 	}
 
-}
-
-LA::Matrix LA::operator+(const Matrix& lhs, const Matrix& rhs)
-{
-	int numRows = lhs.m_nRows;
-	int numCols = lhs.m_nCols;
-
-	Matrix result(numRows, numCols, false);
-
-	for (int i = 0; i < result.m_nElements; i++)
-		result.SetElement(i, lhs.m_matrix[i] + rhs.m_matrix[i]);
-
-	return result;
-}
-
-LA::Matrix LA::operator-(const Matrix& lhs, const Matrix& rhs)
-{
-	int numRows = lhs.m_nRows;
-	int numCols = lhs.m_nCols;
-
-	Matrix result(numRows, numCols, false);
-
-	for (int i = 0; i < result.m_nElements; i++)
-		result.SetElement(i, lhs.m_matrix[i] - rhs.m_matrix[i]);
-
-	return result;
 }
 
 LA::Matrix LA::operator*(const Matrix& lhs, const Matrix& rhs)
@@ -418,16 +392,12 @@ LA::Matrix LA::operator*(const Matrix& lhs, const Matrix& rhs)
 
 	if (l_numCols == r_numRows)
 	{
-		// This is the standard matrix multiplication condition.
-		// The output will be the same size as the RHS.
 		Matrix result(lhs.m_nRows, rhs.m_nCols, false);
 
-		// Loop through each row of the LHS.
-			// Loop through each column on the RHS.
 			for (int i = 0; i < l_numRows; i++) {
 				for (int j = 0; j < r_numCols; j++) {
 					for (int k = 0; k < l_numCols; k++) {
-						long double elementResult = result.GetElement(i, j) + lhs.GetElement(i, k) * rhs.GetElement(k, j);
+						double elementResult = result.GetElement(i, j) + lhs.GetElement(i, k) * rhs.GetElement(k, j);
 						result.SetElement(i, j, elementResult);
 					}
 				}

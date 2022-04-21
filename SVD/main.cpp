@@ -9,7 +9,7 @@
 using namespace std;
 using namespace std::chrono;
 
-std::pair<vector<long double>, std::pair<int, int>> getVectorFromFile(string filename);
+std::pair<vector<double>, std::pair<int, int>> getVectorFromFile(string filename);
 
 int main()
 {
@@ -64,9 +64,9 @@ int main()
 	output_file.close();
 }
 
-std::pair<vector<long double>, std::pair<int, int>> getVectorFromFile(string filename)
+std::pair<vector<double>, std::pair<int, int>> getVectorFromFile(string filename)
 {
-	vector<long double> result;
+	vector<double> result;
 	ifstream input(filename);
 	string s;
 	int rows = 0;
@@ -84,7 +84,7 @@ std::pair<vector<long double>, std::pair<int, int>> getVectorFromFile(string fil
 		}
 		rows++;
 	}
-	return std::pair<vector<long double>, std::pair<int,int>>(result, pair<int,int>(rows, cols));
+	return std::pair<vector<double>, std::pair<int,int>>(result, pair<int,int>(rows, cols));
 }
 
 
