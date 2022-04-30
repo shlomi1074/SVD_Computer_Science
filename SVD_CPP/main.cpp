@@ -24,6 +24,7 @@ int main()
 
 	LA::Matrix mat(input.second.first, input.second.second, &input.first);
 	
+	//LA::Matrix mat(2000, 2000, true);
 
 	std::cout << "Calculate SVD" << std::endl;
 	start = high_resolution_clock::now();
