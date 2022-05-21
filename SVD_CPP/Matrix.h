@@ -15,14 +15,14 @@ namespace LA
 
 		Matrix Transpose();
 		Matrix PseudoInverse();
-		void SVD(double tolerance);
+		void SVD(double tolerance = 1.0e-8);
 		inline Matrix GetVt() { return *m_eigenVectorsTranspose; }
 		inline Matrix GetV() { return *m_eigenVectors; }
 		inline Matrix GetS() { return *m_eigenValues; }
 		inline Matrix GetSi() { return *m_eigenValuesInverse; }
 		inline Matrix GetU() { return (*this) * (*m_eigenVectors) * (*m_eigenValuesInverse); }
 
-		void CalculateEigensJacobi(double tolerance);
+		void CalculateEigensJacobi(double tolerance = 1.0e-8);
 		void SetElement(int row, int col, double elementValue);
 		void SetElement(int index, double elementValue);
 		void WriteMatrixToFile(string fileName, string matrixName);

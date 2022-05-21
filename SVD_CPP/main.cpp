@@ -28,7 +28,7 @@ int main()
 
 	std::cout << "Calculate SVD" << std::endl;
 	start = high_resolution_clock::now();
-	mat.SVD(mat.GetColNum());
+	mat.SVD();
 	stop = high_resolution_clock::now();
 	std::cout << "Finished Calculating SVD" << std::endl;
 
@@ -39,23 +39,23 @@ int main()
 	auto u = mat.GetU();
 	auto s = mat.GetS();
 	auto vt = mat.GetVt();
-	auto mulRes = u * s * vt;
+	//auto mulRes = u * s * vt;
 
-	auto compare_res = mat.Compare(mulRes, 0.01);
+	//auto compare_res = mat.Compare(mulRes, 0.01);
 
 	// Writing matrices to file
 	mat.WriteMatrixToFile(filename, "A");
 	mat.GetV().WriteMatrixToFile(filename, "V");
 	s.WriteMatrixToFile(filename, "S");
 	u.WriteMatrixToFile(filename, "U");
-	mulRes.WriteMatrixToFile(filename, "USVt");
+	//mulRes.WriteMatrixToFile(filename, "USVt");
 
 
 	// Writing performance info to file
 	std::ofstream output_file;
-	auto res = compare_res == 1 ? "Successful" : "Failed";
+	//auto res = compare_res == 1 ? "Successful" : "Failed";
 	output_file.open(filename.append("_output.txt"), std::ios_base::app);
-	output_file << "SVD Results: " << res <<endl << endl;
+	//output_file << "SVD Results: " << res <<endl << endl;
 	output_file << "Performance Results: " << endl;
 	output_file << "Load File Duration: " << load_file_duration_sec.count() << " sec" << endl;
 	output_file << "Load File Duration: " << load_file_duration_millis.count() << " millis" << endl << endl;

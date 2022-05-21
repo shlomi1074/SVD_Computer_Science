@@ -9,7 +9,7 @@
 #include <sstream>
 #include <math.h>
 
-LA::Matrix::Matrix(int nRows, int nCols, bool isRandom):
+LA::Matrix::Matrix(int nRows, int nCols, bool isRandom) :
 	m_nRows(nRows),
 	m_nCols(nCols),
 	m_nElements(m_nRows* m_nCols)
@@ -32,10 +32,10 @@ LA::Matrix::Matrix(int nRows, int nCols, bool isRandom):
 	}
 }
 
-LA::Matrix::Matrix(int nRows, int nCols, vector<double>* inputData):
-m_nRows(nRows),
-m_nCols(nCols),
-m_nElements(m_nRows* m_nCols)
+LA::Matrix::Matrix(int nRows, int nCols, vector<double>* inputData) :
+	m_nRows(nRows),
+	m_nCols(nCols),
+	m_nElements(m_nRows* m_nCols)
 {
 	m_matrix = new double[m_nElements];
 	for (int i = 0; i < m_nElements; i++)
@@ -48,7 +48,7 @@ m_nElements(m_nRows* m_nCols)
 	{
 		for (int j = 0; j < m_nCols; j++)
 		{
-			if (i != j && fabs(GetElement(i, j)) > m_maxValue) 
+			if (i != j && fabs(GetElement(i, j)) > m_maxValue)
 			{
 				m_maxValue = fabs(GetElement(i, j));
 				m_maxValueRowIndex = i;
@@ -82,7 +82,7 @@ double LA::Matrix::GetElement(int row, int col) const
 	return m_matrix[index];
 }
 
-void LA::Matrix::CalculateEigensJacobi(double tolerance = 1.0e-8)
+void LA::Matrix::CalculateEigensJacobi(double tolerance)
 {
 	//TODO: check if ok
 	m_eigenValues = new LA::Matrix(m_nCols, m_nCols, false);
@@ -109,7 +109,7 @@ void LA::Matrix::CalculateEigensJacobi(double tolerance = 1.0e-8)
 void LA::Matrix::jacobiEigensRotate()
 {
 	//calculations
-	double maxRow =  GetElement(m_maxValueRowIndex, m_maxValueRowIndex);
+	double maxRow = GetElement(m_maxValueRowIndex, m_maxValueRowIndex);
 	double maxCol = GetElement(m_maxValueColIndex, m_maxValueColIndex);
 	double maxRowCol = GetElement(m_maxValueRowIndex, m_maxValueColIndex);
 
@@ -132,7 +132,7 @@ void LA::Matrix::jacobiEigensRotate()
 	double tempCol;
 	double tempRow;
 	//updating M (for eigen values)
- 	SetElement(m_maxValueRowIndex, m_maxValueColIndex, 0);
+	SetElement(m_maxValueRowIndex, m_maxValueColIndex, 0);
 	SetElement(m_maxValueRowIndex, m_maxValueRowIndex, maxRow - t * temp);
 	SetElement(m_maxValueColIndex, m_maxValueColIndex, maxCol + t * temp);
 
@@ -165,8 +165,8 @@ void LA::Matrix::jacobiEigensRotate()
 	}
 	//updating eigenvectors
 	for (int i = 0; i < m_nCols; i++) {//Update transformation matrix
-		tempRow = m_eigenVectors->GetElement(i, m_maxValueRowIndex); 
-		tempCol = m_eigenVectors->GetElement(i, m_maxValueColIndex); 
+		tempRow = m_eigenVectors->GetElement(i, m_maxValueRowIndex);
+		tempCol = m_eigenVectors->GetElement(i, m_maxValueColIndex);
 
 		tempValue = tempRow - s * (tempCol + tau * tempRow);
 		m_eigenVectors->SetElement(i, m_maxValueRowIndex, tempValue);
@@ -186,7 +186,7 @@ void LA::Matrix::arrangeEigenVectors(vector<pair<double, int>> eigenValues)
 			double elem = m_eigenVectors->GetElement(i, eigenValues[j].second);
 			result.SetElement(i, j, elem);
 		}
-	*m_eigenVectors = result;	
+	*m_eigenVectors = result;
 }
 
 void LA::Matrix::SetElement(int row, int col, double elementValue)
@@ -250,13 +250,13 @@ LA::Matrix LA::Matrix::PseudoInverse()
 		auto diagValue = GetElement(i, i);
 		if (diagValue != 0)
 		{
-				resMatrix.SetElement(i, i, 1 / diagValue);
+			resMatrix.SetElement(i, i, 1 / diagValue);
 		}
 	}
 	return resMatrix;
 }
 
-void LA::Matrix::SVD(double tolerance = 1.0e-8)
+void LA::Matrix::SVD(double tolerance)
 {
 	m_eigenValues = new LA::Matrix(m_nCols, m_nCols, false);
 	m_eigenVectors = new LA::Matrix(m_nCols, m_nCols, false);
@@ -394,14 +394,14 @@ LA::Matrix LA::operator*(const Matrix& lhs, const Matrix& rhs)
 	{
 		Matrix result(lhs.m_nRows, rhs.m_nCols, false);
 
-			for (int i = 0; i < l_numRows; i++) {
-				for (int j = 0; j < r_numCols; j++) {
-					for (int k = 0; k < l_numCols; k++) {
-						double elementResult = result.GetElement(i, j) + lhs.GetElement(i, k) * rhs.GetElement(k, j);
-						result.SetElement(i, j, elementResult);
-					}
+		for (int i = 0; i < l_numRows; i++) {
+			for (int j = 0; j < r_numCols; j++) {
+				for (int k = 0; k < l_numCols; k++) {
+					double elementResult = result.GetElement(i, j) + lhs.GetElement(i, k) * rhs.GetElement(k, j);
+					result.SetElement(i, j, elementResult);
 				}
-			}				
+			}
+		}
 		return result;
 	}
 	else
